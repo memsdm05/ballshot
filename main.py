@@ -32,6 +32,7 @@ ATOM_IMG = pg.Surface((16, 16), pg.SRCALPHA)
 # gfxdraw.aacircle(ATOM_IMG, 8, 8, 7, (0, 255, 0))
 gfxdraw.filled_circle(ATOM_IMG, 8, 8, 7, (255, 100, 0))
 
+
 class Ball(pg.sprite.Sprite):
     def __init__(self, dir, mag, start: Vector2) -> None:
         super().__init__()
@@ -40,7 +41,7 @@ class Ball(pg.sprite.Sprite):
         rot = dir * math.pi / 180
         self.vel = Vector2(
             x=mag * math.cos(rot),
-            y=-mag * math.sin(rot) # weirdo coordinate system
+            y=-mag * math.sin(rot)  # weirdo coordinate system
         )
 
         self.image = ATOM_IMG
@@ -58,7 +59,6 @@ class Ball(pg.sprite.Sprite):
             balls.remove(self)
 
 
-
 def rot_center(image, angle):
     """rotate an image while keeping its center and size"""
     orig_rect = image.get_rect()
@@ -67,6 +67,7 @@ def rot_center(image, angle):
     rot_rect.center = rot_image.get_rect().center
     rot_image = rot_image.subsurface(rot_rect).copy()
     return rot_image
+
 
 class Cannon:
     head = pg.image.load("shooter_head.png")
@@ -90,11 +91,18 @@ class Cannon:
     def update(self, mouse_pos: tuple[int, int]):
         # find distance between self and mouse
         # 
-        # use that distnace to figure out the angle and power
+        # use that distance to figure out the angle and power
         # the cannon has to be at
         #
         # set rot to that (degrees)
         self.rot = self.angle_to(Vector2(mouse_pos))
+        if self.rot <= 0:
+            self.rot = 1
+        meat = ((mouse_pos[0]-20) * 0.1)/(math.sin(2 * math.radians(self.rot)))
+        if meat < 0:
+            meat = 0
+        self.power = math.sqrt(meat)
+        # print(self.power)
 
     def draw(self, dst: pg.Surface):
         dst.blit(rot_center(self.head, self.rot), self.graphical_pos)
@@ -107,7 +115,8 @@ class Cannon:
         balls.add(
             Ball(self.rot, self.power, pos)
         )      
-        
+
+
 bg = pg.image.load("bg.png")
 cannon = Cannon()
 t = 0.0
@@ -135,6 +144,8 @@ while True:
     pg.draw.line(screen, (0, 250, 0), (0, 600), (800, 600), 10)  # draws ground
     balls.draw(screen)
     cannon.draw(screen)
+    pg.draw.line(screen, (250, 0, 0), (pg.mouse.get_pos()[0] - 15, 615), (pg.mouse.get_pos()[0] + 15, 585), 5)
+    pg.draw.line(screen, (250, 0, 0), (pg.mouse.get_pos()[0] + 15, 615), (pg.mouse.get_pos()[0] - 15, 585), 5)
     pg.display.flip()
 
     clock.tick(60)
